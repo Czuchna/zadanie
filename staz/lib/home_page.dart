@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:staz/outlier_cubit.dart';
 import 'package:staz/result_page.dart';
+import 'package:staz/widgets/custom_text_field.dart';
 
 class MyHomePage extends StatefulWidget {
   final String title;
@@ -17,86 +17,74 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text(widget.title),
-          centerTitle: true,
-        ),
-        body: BlocConsumer<OutlierCubit, OutlierState>(
-          listener: (context, state) {
-            if (state is OutlierFound) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ResultPage(outlier: state.outlier),
-                ),
+    return Scaffold(
+      //TODO(Kacper): resizeToAvoidBottomInset: false,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(widget.title),
+        centerTitle: true,
+      ),
+      body: _buildBody(context),
+    );
+  }
+
+  Center _buildBody(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          CustomTextField(
+            controller: controller,
+            onChanged: (v) {
+              setState(() {});
+            },
+          ),
+          BlocConsumer<OutlierCubit, OutlierState>(
+            listener: (context, state) {
+              if (state is OutlierFound) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ResultPage(outlier: state.outlier),
+                  ),
+                );
+                controller.clear();
+                FocusScope.of(context).unfocus();
+              }
+              if (state is OutlierError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            builder: (context, state) {
+              return TextButton(
+                onPressed: controller.text.isNotEmpty
+                    ? () {
+                        context
+                            .read<OutlierCubit>()
+                            .processInput(controller.text);
+                      }
+                    : null,
+                style: TextButton.styleFrom(
+                    disabledBackgroundColor: Colors.grey,
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.green),
+                child: state is LoadingState
+                    ? const CircularProgressIndicator(
+                        color: Colors.white,
+                      )
+                    : const Text(
+                        'Wyszukaj',
+                        style: TextStyle(fontSize: 20),
+                      ),
               );
-            }
-            if (state is OutlierError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
-          },
-          builder: (context, state) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  const SizedBox(
-                    height: 150,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextField(
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      controller: controller,
-                      decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15)),
-                          hintText: 'Wpisz liczby przedzielone przecinkami',
-                          labelText: 'Liczby wejściowe',
-                          suffixIcon: IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                controller.clear();
-                              })),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9,]'))
-                      ],
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      context
-                          .read<OutlierCubit>()
-                          .processInput(controller.text);
-                    },
-                    style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.green),
-                    child: const Text(
-                      'Wyszukaj',
-                      style: TextStyle(fontSize: 20),
-                    ),
-                  )
-                ],
-              ),
-            );
-          },
-        ),
+            },
+          )
+        ],
       ),
     );
   }
