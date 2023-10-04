@@ -41,21 +41,18 @@ class OutlierCubit extends Cubit<OutlierState> {
       throw Exception(
           'Potrzebne są co najmniej 3 liczby, aby znaleźć wartość odstającą');
     }
-    try {
-      final sample = [numbers[0], numbers[1], numbers[2]];
-      final isEvenCount = sample.where((n) => n.isEven).length;
 
-      if (isEvenCount >= 2) {
-        return numbers.firstWhere(
-            orElse: () => throw Exception('Niepoprawna tablica wejściowa'),
-            (n) => n.isOdd);
-      } else {
-        return numbers.firstWhere(
-            orElse: () => throw Exception('Niepoprawna tablica wejściowa'),
-            (n) => n.isEven);
-      }
-    } on Exception {
-      throw Exception('Niepoprawna tablica wejściowa');
+    final sample = [numbers[0], numbers[1], numbers[2]];
+    final isEvenCount = sample.where((n) => n.isEven).length;
+
+    if (isEvenCount >= 2) {
+      return numbers.firstWhere(
+          orElse: () => throw Exception('Niepoprawna tablica wejściowa'),
+          (n) => n.isOdd);
+    } else {
+      return numbers.firstWhere(
+          orElse: () => throw Exception('Niepoprawna tablica wejściowa'),
+          (n) => n.isEven);
     }
   }
 }
